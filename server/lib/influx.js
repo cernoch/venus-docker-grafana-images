@@ -1,8 +1,8 @@
-const Influx = require('influx')
+const {InfluxDB, Point, HttpError} = require('@influxdata/influxdb-client')
 const _ = require('lodash')
 const debug = require('debug')('venus-server:influxdb')
 
-function InfluxDB (app) {
+function Influx (app) {
   this.app = app
   this.logger = app.getLogger('influxdb')
   this.debug = this.logger.debug.bind(this.logger)
@@ -26,12 +26,14 @@ function InfluxDB (app) {
       return
     }
 
-    const { host, port, database, retention } = settings.influxdb
+    const { host, port, token, organization, bucket, retention } = settings.influxdb
 
     if (
       this.host !== host ||
       this.port !== port ||
-      this.database !== database
+      this.token !== token ||
+      this.organization !== organization ||
+      this.bucket !== bucket
     ) {
       this.connected = false
       this.connect()
@@ -57,7 +59,7 @@ function InfluxDB (app) {
   })
 }
 
-InfluxDB.prototype.setRetentionPolicy = function (client, retention) {
+Influx.prototype.setRetentionPolicy = function (client, retention) {
   const opts = {
     duration: retention,
     replication: 1,
@@ -84,22 +86,21 @@ InfluxDB.prototype.setRetentionPolicy = function (client, retention) {
   })
 }
 
-InfluxDB.prototype.connect = function () {
-  const { host, port, database, retention } = this.app.config.settings.influxdb
+Influx.prototype.connect = function () {
+  const { host, port, token, organization, bucket, retention } = this.app.config.settings.influxdb
   this.host = host
   this.port = port
-  this.database = database
-  this.info(`Attempting connection to ${host}:${port}/${database}`)
+  this.token = token
+  this.organization = organization
+  this.bucket = bucket
+  this.info(`Attempting connection to ${host}:${port} org=${organization} bucket=${bucket}`)
   this.client = new Promise((resolve, reject) => {
-    const client = new Influx.InfluxDB({
-      host: host,
-      port: port,
-      protocol: 'http',
-      database: database
-    })
-
+    const url = 'http://' + host + ':' + port;
+    const client = new InfluxDB({url, token}).getWriteApi(organization, bucket, 'ns')
     this.connected = true
+    resolve(client)
 
+    /*
     client
       .getDatabaseNames()
       .then(names => {
@@ -122,11 +123,12 @@ InfluxDB.prototype.connect = function () {
         }
       })
       .catch(reject)
+      */
   })
   return this.client
 }
 
-InfluxDB.prototype.store = function (
+Influx.prototype.store = function (
   portalId,
   name,
   instanceNumber,
@@ -137,30 +139,43 @@ InfluxDB.prototype.store = function (
     return
   }
 
-  let valueKey = 'value'
+  let point = {};
   if (typeof value === 'string') {
     if (value.length === 0) {
       //influxdb won't allow empty strings
       return
     }
-    valueKey = 'stringValue'
-  } else if (typeof value !== 'number') {
+
+    point = new Point(measurement)
+        .tag('portalId', portalId)
+        .tag('instanceNumber', instanceNumber)
+        .tag('name', name || portalId)
+        .stringField('valueString', value)
+        .timestamp(new Date())
+  } else if (typeof value === 'number') {
+    point = new Point(measurement)
+        .tag('portalId', portalId)
+        .tag('instanceNumber', instanceNumber)
+        .tag('name', name || portalId)
+        .floatField('value', value)
+        .timestamp(new Date())
+  } else {
     return
   }
 
-  const point = {
-    timestamp: new Date(),
-    measurement: measurement,
-    tags: {
-      portalId: portalId,
-      instanceNumber: instanceNumber,
-      name: name || portalId
-    },
-    fields: {
-      [valueKey]: value
-    }
-  }
+  this.client
+  .then(client => {
+    client.writePoint(point).catch(err => {
+      //this.app.emit('error', err)
+      this.debug(err)
+    })
+  })
+  .catch(error => {
+    //this.app.emit('error', error)
+    this.debug(error)
+  })
 
+  /*
   this.accumulatedPoints.push(point)
   const now = Date.now()
   if (
@@ -175,6 +190,7 @@ InfluxDB.prototype.store = function (
           //this.app.emit('error', err)
           this.debug(err)
         })
+        this.info(this.accumulatedPoints)
         this.accumulatedPoints = []
       })
       .catch(error => {
@@ -183,6 +199,7 @@ InfluxDB.prototype.store = function (
         this.accumulatedPoints = []
       })
   }
+  */
 }
 
-module.exports = InfluxDB
+module.exports = Influx
