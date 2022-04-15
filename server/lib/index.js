@@ -141,7 +141,9 @@ function Server (opts) {
         host: 'influxdb',
         port: 8086,
         database: 'venus',
-        retention: '30d'
+        retention: '30d',
+        username: '',
+        password: ''
       }
     }
 
