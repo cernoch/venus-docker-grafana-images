@@ -156,6 +156,38 @@ class InfluxDB extends Component {
                 </Col>
               </FormGroup>
           
+              <FormGroup row>
+                <Col md='2'>
+                  <Label htmlFor='port'>Username</Label>
+                </Col>
+                <Col xs='12' md={fieldColWidthMd}>
+                  <Input
+                    size='20'
+                    style={{ width: 'auto' }}
+                    type='text'
+                    name='username'
+                    onChange={this.handleOptionChange}
+                    value={this.state.settings.influxdb.username}
+                  />
+                </Col>
+              </FormGroup>
+          
+              <FormGroup row>
+                <Col md='2'>
+                  <Label htmlFor='port'>Password</Label>
+                </Col>
+                <Col xs='12' md={fieldColWidthMd}>
+                  <Input
+                    size='20'
+                    style={{ width: 'auto' }}
+                    type='text'
+                    name='password'
+                    onChange={this.handleOptionChange}
+                    value={this.state.settings.influxdb.password}
+                  />
+                </Col>
+              </FormGroup>
+          
         </Form>
             </CardBody>
             <CardFooter>

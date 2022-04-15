@@ -26,12 +26,14 @@ function InfluxDB (app) {
       return
     }
 
-    const { host, port, database, retention } = settings.influxdb
+    const { host, port, database, retention, username, password } = settings.influxdb
 
     if (
       this.host !== host ||
       this.port !== port ||
-      this.database !== database
+      this.database !== database ||
+      this.username !== username ||
+      this.password !== password      
     ) {
       this.connected = false
       this.connect()
@@ -91,7 +93,7 @@ InfluxDB.prototype.connect = function () {
   this.database = database
   this.username = username
   this.password = password
-  this.info(`Attempting connection to ${host}:${port}/${database}`)
+  this.info(`Attempting connection to ${username}@${host}:${port}/${database}`)
   this.client = new Promise((resolve, reject) => {
     const client = new Influx.InfluxDB({
       host: host,
