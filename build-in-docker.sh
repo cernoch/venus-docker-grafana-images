@@ -1,1 +1,1 @@
-sudo docker build -t cernoch/venus-docker-server .
+sudo docker build -t cernoch/venus-server .
