@@ -126,20 +126,52 @@ class InfluxDB extends Component {
 
               <FormGroup row>
                 <Col md='2'>
-                  <Label htmlFor='port'>Database Name</Label>
+                  <Label htmlFor='port'>Authentization token</Label>
                 </Col>
                 <Col xs='12' md={fieldColWidthMd}>
                   <Input
                     size='20'
                     style={{ width: 'auto' }}
                     type='text'
-                    name='database'
+                    name='token'
                     onChange={this.handleOptionChange}
-                    value={this.state.settings.influxdb.database}
+                    value={this.state.settings.influxdb.token}
                   />
                 </Col>
               </FormGroup>
 
+              <FormGroup row>
+                <Col md='2'>
+                  <Label htmlFor='port'>Organization name</Label>
+                </Col>
+                <Col xs='12' md={fieldColWidthMd}>
+                  <Input
+                    size='20'
+                    style={{ width: 'auto' }}
+                    type='text'
+                    name='organization'
+                    onChange={this.handleOptionChange}
+                    value={this.state.settings.influxdb.organization}
+                  />
+                </Col>
+              </FormGroup>
+
+              <FormGroup row>
+                <Col md='2'>
+                  <Label htmlFor='port'>Bucket name</Label>
+                </Col>
+                <Col xs='12' md={fieldColWidthMd}>
+                  <Input
+                    size='20'
+                    style={{ width: 'auto' }}
+                    type='text'
+                    name='bucket'
+                    onChange={this.handleOptionChange}
+                    value={this.state.settings.influxdb.bucket}
+                  />
+                </Col>
+              </FormGroup>
+          
               <FormGroup row>
                 <Col md='2'>
                   <Label htmlFor='port'>Retention Period</Label>
@@ -155,7 +187,7 @@ class InfluxDB extends Component {
                   />
                 </Col>
               </FormGroup>
-          
+                    
         </Form>
             </CardBody>
             <CardFooter>

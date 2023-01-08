@@ -4,7 +4,7 @@ const http = require('http')
 const _ = require('lodash')
 const fs = require('fs')
 const Loader = require('./loader')
-const InfluxDB = require('./influxdb')
+const Influx = require('./influx')
 const winston = require('winston')
 const LogStorageTransport = require('./transport')
 const auth = require('basic-auth')
@@ -140,7 +140,9 @@ function Server (opts) {
       influxdb: {
         host: 'influxdb',
         port: 8086,
-        database: 'venus',
+        token: '',
+        organization: 'victron',
+        bucket: 'venus',
         retention: '30d'
       }
     }
@@ -244,7 +246,7 @@ Server.prototype.start = function () {
   app.upnp = require('./upnp')(this.app)
   app.vrm = require('./vrm')(this.app)
   app.loader = new Loader(app)
-  app.influxdb = new InfluxDB(app)
+  app.influxdb = new Influx(app)
   app.influxdb
     .connect()
     .then(() => {
